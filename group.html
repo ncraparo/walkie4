@@ -1,0 +1,1279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Group Walkie Talkie">
+<link rel="apple-touch-icon" href="https://ncraparo.github.io/walkie2/apple-touch-icon.png">
+<meta name="description" content="Hold the button to talk. Live push-to-talk for up to 6 people, with voice changer buttons.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Walkie Talkie">
+<meta property="og:title" content="Group Walkie Talkie">
+<meta property="og:description" content="Hold the button to talk. Live push-to-talk for up to 6 people, with voice changer buttons.">
+<meta property="og:image" content="https://ncraparo.github.io/walkie2/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A big hold-to-talk microphone button with LOW-PITCH, HIGH-PITCH and SUPER-HIGH-PITCH voice buttons">
+<meta name="twitter:card" content="summary_large_image">
+<title>Group Walkie Talkie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js"></script>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #dfe5e2;
+  --surface: #ecf0ee;
+  --field: #f6f8f7;
+  --ink: #15232b;
+  --muted: #566a73;
+  --line: #b4c2bc;
+  --tx: #d93b14;
+  --tx-ink: #ffffff;
+  --rx: #0f7f62;
+  --rx-ink: #ffffff;
+  --key: #15232b;
+  --key-ink: #eef3f1;
+  --key-edge: #070d10;
+  --danger: #b3261e;
+  --font: "Barlow Semi Condensed", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10181c;
+    --surface: #18232a;
+    --field: #0e1519;
+    --ink: #e6eef0;
+    --muted: #8fa5ae;
+    --line: #2c3c45;
+    --tx: #ff6a3d;
+    --tx-ink: #1b0a04;
+    --rx: #35c9a1;
+    --rx-ink: #06231b;
+    --key: #e6eef0;
+    --key-ink: #10181c;
+    --key-edge: #8da1a9;
+    --danger: #ff8a80;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10181c;
+  --surface: #18232a;
+  --field: #0e1519;
+  --ink: #e6eef0;
+  --muted: #8fa5ae;
+  --line: #2c3c45;
+  --tx: #ff6a3d;
+  --tx-ink: #1b0a04;
+  --rx: #35c9a1;
+  --rx-ink: #06231b;
+  --key: #e6eef0;
+  --key-ink: #10181c;
+  --key-edge: #8da1a9;
+  --danger: #ff8a80;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+*, *::before, *::after { box-sizing: inherit; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.35;
+  -webkit-text-size-adjust: 100%;
+}
+.app {
+  height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 18px 22px 22px;
+  display: flex;
+  flex-direction: column;
+}
+#join { display: flex; flex-direction: column; min-height: 0; }
+h1 {
+  font-size: 52px;
+  line-height: 0.95;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 28px 0 14px;
+}
+.lede { color: var(--muted); font-size: 20px; margin: 0 0 30px; max-width: 28ch; }
+label { display: block; font-weight: 600; font-size: 17px; margin: 0 0 6px; }
+.hint { color: var(--muted); font-size: 15px; font-weight: 500; margin: 6px 0 0; }
+input {
+  width: 100%;
+  height: 54px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 2px solid var(--line);
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 600;
+}
+input:focus-visible, button:focus-visible { outline: 3px solid var(--rx); outline-offset: 3px; }
+.field { margin-bottom: 22px; }
+.primary {
+  width: 100%;
+  height: 60px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--key);
+  color: var(--key-ink);
+  font: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  box-shadow: 0 5px 0 var(--key-edge);
+  cursor: pointer;
+}
+.primary:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--key-edge); }
+.primary:disabled { opacity: .6; }
+.note { min-height: 1.4em; margin: 12px 0 0; color: var(--danger); font-size: 16px; font-weight: 600; }
+.fine { margin-top: auto; color: var(--muted); font-size: 15px; padding-top: 18px; }
+.linkbtn {
+  background: none; border: 0; color: var(--muted); font: inherit; font-weight: 600;
+  font-size: 17px; padding: 10px 4px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.invite { align-self: flex-start; margin-top: 8px; }
+
+/* radio screen */
+.radio { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.chip {
+  font-size: 17px; font-weight: 600; padding: 6px 14px; border-radius: 999px;
+  border: 2px solid var(--line); background: var(--surface); max-width: 68%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.status { font-size: 32px; line-height: 1.05; font-weight: 700; margin: 20px 0 10px; min-height: 2.1em; }
+.roster { display: flex; flex-wrap: wrap; gap: 8px; min-height: 36px; margin: 0 0 12px; }
+.who {
+  font-size: 16px; font-weight: 600; padding: 4px 12px; border-radius: 999px;
+  border: 2px solid var(--line); background: var(--surface); max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.who.talking { background: var(--rx); border-color: var(--rx); color: var(--rx-ink); }
+.meter { display: flex; align-items: center; gap: 4px; height: 40px; }
+.meter i {
+  flex: 1; height: 100%; border-radius: 3px; background: var(--line);
+  transform: scaleY(.12); transform-origin: 50% 50%; transition: background .2s;
+}
+.radio[data-mode="tx"] .meter i { background: var(--tx); animation: lvl .8s ease-in-out infinite; animation-delay: calc(var(--i) * -.11s); }
+.radio[data-mode="rx"] .meter i { background: var(--rx); animation: lvl .8s ease-in-out infinite; animation-delay: calc(var(--i) * -.11s); }
+.meter i:nth-child(3n) { animation-duration: .6s !important; }
+.meter i:nth-child(3n+1) { animation-duration: 1.05s !important; }
+@keyframes lvl { 0%, 100% { transform: scaleY(.15); } 50% { transform: scaleY(1); } }
+
+.keywrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px 0 8px; min-height: 0; }
+.ptt {
+  position: relative;
+  width: min(66vw, 290px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  background: var(--key);
+  color: var(--key-ink);
+  font: inherit;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 12px 0 var(--key-edge), 0 24px 34px rgba(0,0,0,.22);
+  transition: transform .07s ease, box-shadow .07s ease, background .12s ease;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+.ptt::before {
+  content: ""; position: absolute; inset: 16px; border-radius: 50%;
+  border: 2px solid currentColor; opacity: .28; pointer-events: none;
+}
+.ptt svg { width: 52px; height: 52px; pointer-events: none; }
+.ptt span { font-size: 32px; font-weight: 700; line-height: 1; pointer-events: none; }
+.ptt:disabled { cursor: default; opacity: .55; }
+.radio[data-mode="tx"] .ptt {
+  background: var(--tx); color: var(--tx-ink);
+  transform: translateY(10px); box-shadow: 0 2px 0 var(--key-edge), 0 8px 16px rgba(0,0,0,.22);
+}
+.radio[data-mode="rx"] .ptt { opacity: 1; animation: ring 1.4s ease-in-out infinite; }
+@keyframes ring {
+  0%, 100% { box-shadow: 0 12px 0 var(--key-edge), 0 0 0 5px var(--rx); }
+  50% { box-shadow: 0 12px 0 var(--key-edge), 0 0 0 14px var(--rx); }
+}
+.sound { margin: 0 auto; }
+.audios { position: absolute; width: 0; height: 0; overflow: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .meter i, .ptt { animation: none !important; transition: none; }
+  .radio[data-mode="tx"] .meter i, .radio[data-mode="rx"] .meter i { transform: scaleY(.75); }
+}
+@media (max-height: 720px) {
+  .ptt { width: min(58vw, 230px); }
+  .status { font-size: 27px; margin-top: 12px; }
+  .meter { height: 30px; }
+}
+@media (max-height: 640px) { h1 { font-size: 40px; margin-top: 14px; } .lede { margin-bottom: 18px; } }
+
+/* voice effects */
+.fx { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 2px 0 4px; }
+.fxbtn {
+  min-height: 48px; padding: 6px 4px; border-radius: 12px;
+  border: 2px solid var(--line); background: var(--surface); color: var(--ink);
+  font: inherit; font-size: 14px; font-weight: 700; letter-spacing: .02em; line-height: 1.1;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.fxbtn[aria-pressed="true"] { background: var(--key); border-color: var(--key); color: var(--key-ink); }
+@media (max-height: 760px) { .ptt { width: min(60vw, 250px); } }
+@media (max-height: 700px) { .ptt { width: min(54vw, 220px); } }
+@media (max-height: 640px) { .ptt { width: min(46vw, 180px); } .ptt svg { width: 40px; height: 40px; } .ptt span { font-size: 26px; } }
+@media (max-height: 580px) { .ptt { width: min(40vw, 150px); } }
+
+/* conversation log */
+.radio { position: relative; }
+.barbtns { display: flex; align-items: center; gap: 8px; }
+.logbtn {
+  padding: 6px 14px; border-radius: 999px; border: 2px solid var(--line);
+  background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; font-weight: 700;
+  letter-spacing: .04em; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.logbtn[aria-pressed="true"] { background: var(--key); border-color: var(--key); color: var(--key-ink); }
+.chip { max-width: 48%; }
+.log {
+  position: absolute; left: 0; right: 0; top: 52px; z-index: 5;
+  background: #0b1114; color: #e6eef0; border: 1px solid #2c3c45; border-radius: 12px;
+  padding: 8px 10px 6px; font-size: 11.5px; line-height: 1.35;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+.log-body { max-height: 150px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+.log-body .day { color: #8fa5ae; font-weight: 700; margin: 0 0 3px; }
+.log-body .row { display: grid; grid-template-columns: 1fr auto; column-gap: 8px; align-items: end; margin: 0 0 3px; }
+.log-body .msg { overflow-wrap: anywhere; }
+.log-body .msg b { font-weight: 700; }
+.log-body .time { color: #8fa5ae; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.log-foot { display: flex; align-items: center; gap: 8px; margin-top: 4px; padding-top: 4px; border-top: 1px solid #1e2b32; font-size: 10px; line-height: 1.25; color: #8fa5ae; }
+.log-state { flex: 1; min-width: 0; max-height: 2.5em; overflow: hidden; }
+.log-copy { background: none; border: 0; color: #8fa5ae; font: inherit; text-decoration: underline; padding: 2px 0; cursor: pointer; }
+</style>
+</head>
+<body>
+<main class="app">
+
+  <section id="join">
+    <h1>Group Walkie Talkie</h1>
+    <p class="lede">Hold the button to talk. Everyone on the channel hears you live.</p>
+
+    <div class="field">
+      <label for="name">Your name</label>
+      <input id="name" type="text" maxlength="24" autocomplete="off" autocapitalize="words" placeholder="Nick">
+    </div>
+    <div class="field">
+      <label for="channel">Channel code</label>
+      <input id="channel" type="text" maxlength="12" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+      <p class="hint">Up to 6 people. Everyone enters the same code (at least 4 letters or numbers).</p>
+      <button id="inviteBtn" class="linkbtn invite" type="button">Send invite link</button>
+    </div>
+
+    <button id="joinBtn" class="primary" type="button">Join channel</button>
+    <p id="joinNote" class="note" role="status" aria-live="polite"></p>
+    <p class="fine">Your microphone stays muted until you hold the button. Anyone with your channel code can join, so keep it private.</p>
+  </section>
+
+  <section id="radio" class="radio" data-mode="wait" hidden>
+    <div class="bar">
+      <div class="chip" id="chLabel">Channel</div>
+      <div class="barbtns">
+        <button id="logBtn" class="logbtn" type="button" aria-pressed="false" aria-controls="log">LOG</button>
+        <button id="leaveBtn" class="linkbtn" type="button">Leave</button>
+      </div>
+    </div>
+    <div id="log" class="log" role="region" aria-label="Conversation log" hidden>
+      <div id="logBody" class="log-body"></div>
+      <div class="log-foot"><span id="logState" class="log-state"></span><button id="logCopy" class="log-copy" type="button">Copy</button></div>
+    </div>
+
+    <div id="status" class="status" role="status" aria-live="polite">Setting up the channel…</div>
+    <div id="roster" class="roster" aria-label="People on the channel"></div>
+    <div class="meter" id="meter" aria-hidden="true"></div>
+    <p id="radioNote" class="note" role="status" aria-live="polite"></p>
+
+    <div class="keywrap">
+      <button id="ptt" class="ptt" type="button" disabled aria-label="Hold to talk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="9" y="2.5" width="6" height="12" rx="3"></rect>
+          <path d="M5 11.5a7 7 0 0 0 14 0"></path>
+          <path d="M12 18.5V22"></path>
+        </svg>
+        <span id="pttLabel">Waiting…</span>
+      </button>
+    </div>
+    <div class="fx" role="group" aria-label="Voice effects">
+      <button class="fxbtn" type="button" data-fx="low" aria-pressed="false">LOW-PITCH</button>
+      <button class="fxbtn" type="button" data-fx="high" aria-pressed="false">HIGH-PITCH</button>
+      <button class="fxbtn" type="button" data-fx="super" aria-pressed="false">SUPER-HIGH-PITCH</button>
+    </div>
+    <button id="soundBtn" class="linkbtn sound" type="button" hidden>Tap to turn on sound</button>
+  </section>
+
+</main>
+<div id="audios" class="audios" aria-hidden="true"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var MAX = 6; // people per channel
+
+  /* ===== RELAY SETTINGS =====
+     A relay server passes the audio along when two phones can't connect
+     directly (for example when they're on different networks). These
+     come from your Metered dashboard. To stop using the relay, empty
+     both quotes. */
+  var RELAY_USERNAME = "1a4450a5f3266086bbde4e98";
+  var RELAY_PASSWORD = "msq96P8t0jKDSx9j";
+  /* ====================================== */
+
+  var ICE_SERVERS = [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" }
+  ];
+  if (RELAY_USERNAME && RELAY_PASSWORD) {
+    ICE_SERVERS = [
+      { urls: "stun:stun.relay.metered.ca:80" },
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "turn:global.relay.metered.ca:80", username: RELAY_USERNAME, credential: RELAY_PASSWORD },
+      { urls: "turn:global.relay.metered.ca:80?transport=tcp", username: RELAY_USERNAME, credential: RELAY_PASSWORD },
+      { urls: "turn:global.relay.metered.ca:443", username: RELAY_USERNAME, credential: RELAY_PASSWORD },
+      { urls: "turns:global.relay.metered.ca:443?transport=tcp", username: RELAY_USERNAME, credential: RELAY_PASSWORD }
+    ];
+  }
+
+  function relayAdvice() {
+    if (!RELAY_USERNAME || !RELAY_PASSWORD) return " A relay server fixes that.";
+    return " The relay is on, so try reloading both pages and check your Metered usage hasn\u2019t run out.";
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var els = {
+    join: $("join"), radio: $("radio"), name: $("name"), channel: $("channel"),
+    joinBtn: $("joinBtn"), inviteBtn: $("inviteBtn"), joinNote: $("joinNote"),
+    radioNote: $("radioNote"), chLabel: $("chLabel"), leaveBtn: $("leaveBtn"),
+    status: $("status"), roster: $("roster"), meter: $("meter"), ptt: $("ptt"),
+    pttLabel: $("pttLabel"), soundBtn: $("soundBtn"), audios: $("audios")
+  };
+
+  /* ---------- state ---------- */
+  var state = { joined: false, ch: "", name: "" };
+  var peer = null, mySlot = 0, claimTries = 0, svcDown = false, fatalMsg = "";
+  var links = {};            // slot -> link to one other person
+  var unavailAt = {}, blockedCount = {};
+  var dialT = null, watchT = null, waitHintT = null;
+  var hintShown = false, blockedShown = false;
+  var localStream = null, micTrack = null, iTalk = false;
+  var audioCtx = null, wake = null, joining = false;
+
+  /* ---------- helpers ---------- */
+  function safeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function safeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function cleanCode(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 12); }
+  function prefix() { return "wtpt-" + state.ch + "-"; }
+  function idFor(n) { return prefix() + n; }
+  function randomCode() {
+    var chars = "abcdefghjkmnpqrstuvwxyz23456789", out = "";
+    for (var i = 0; i < 6; i++) out += chars.charAt(Math.floor(Math.random() * chars.length));
+    return out;
+  }
+  function slotFromPeerId(id) {
+    id = String(id || "");
+    if (id.indexOf(prefix()) !== 0) return 0;
+    var n = parseInt(id.slice(prefix().length), 10);
+    return (n >= 1 && n <= MAX && n !== mySlot) ? n : 0;
+  }
+  function slotFromMessage(msg) {
+    var m = /-(\d+)\s*$/.exec(String(msg || ""));
+    var n = m ? parseInt(m[1], 10) : 0;
+    return (n >= 1 && n <= MAX) ? n : 0;
+  }
+  function linkList() {
+    return Object.keys(links).map(function (k) { return links[k]; }).sort(function (a, b) { return a.slot - b.slot; });
+  }
+  function isUp(L) { return L.dcOpen && L.hasStream; }
+  function upCount() { return linkList().filter(isUp).length; }
+  function talkerCount() { return linkList().filter(function (L) { return L.talking; }).length; }
+  function nameOf(L) { return L.name || ("Person " + L.slot); }
+  function getLink(slot) {
+    if (!links[slot]) {
+      links[slot] = {
+        slot: slot, dc: null, dcOpen: false, call: null, hasStream: false, audio: null,
+        name: "", talking: false, lastSeen: 0, dialStartedAt: 0, dialed: false
+      };
+    }
+    return links[slot];
+  }
+
+  for (var i = 0; i < 18; i++) {
+    var b = document.createElement("i");
+    b.style.setProperty("--i", i);
+    els.meter.appendChild(b);
+  }
+
+  els.name.value = safeGet("wt-name") || "";
+  var fromLink = cleanCode((location.hash || "").replace(/^#/, ""));
+  els.channel.value = fromLink || safeGet("wt-channel") || randomCode();
+
+  /* ---------- sounds ---------- */
+  function beep(freqs, dur) {
+    if (!audioCtx) return;
+    try {
+      var t = audioCtx.currentTime;
+      freqs.forEach(function (f, i) {
+        var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = "sine"; o.frequency.value = f;
+        var s = t + i * dur;
+        g.gain.setValueAtTime(0.0001, s);
+        g.gain.exponentialRampToValueAtTime(0.28, s + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, s + dur);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(s); o.stop(s + dur + 0.02);
+      });
+    } catch (e) {}
+  }
+
+  function playAudio(a) {
+    var p = a.play();
+    if (p && p.then) {
+      p.then(function () { els.soundBtn.hidden = true; }).catch(function () { els.soundBtn.hidden = false; });
+    }
+  }
+  function playAll() {
+    linkList().forEach(function (L) { if (L.audio) playAudio(L.audio); });
+  }
+
+  /* ---------- rendering ---------- */
+  function nameList(list) {
+    var names = list.map(nameOf);
+    if (names.length <= 2) return names.join(" and ");
+    return names[0] + ", " + names[1] + " +" + (names.length - 2);
+  }
+
+  function render() {
+    if (!state.joined) return;
+    var all = linkList();
+    var ups = all.filter(isUp);
+    var opens = all.filter(function (L) { return L.dcOpen; });
+    var talkers = all.filter(function (L) { return L.talking; });
+    var status, mode, label;
+
+    if (fatalMsg) { status = "Can\u2019t start the channel"; mode = "wait"; label = "Unavailable"; }
+    else if (svcDown && !ups.length) { status = "Reconnecting to the connection service…"; mode = "wait"; label = "Waiting…"; }
+    else if (!mySlot) { status = "Setting up the channel…"; mode = "wait"; label = "Waiting…"; }
+    else if (iTalk && ups.length) { status = "You\u2019re talking"; mode = "tx"; label = "Talking…"; }
+    else if (talkers.length) { status = nameList(talkers) + (talkers.length > 1 ? " are talking" : " is talking"); mode = "rx"; label = "Channel busy"; }
+    else if (ups.length) { status = ups.length === 1 ? "Connected to " + nameOf(ups[0]) : "Connected: " + ups.length + " people"; mode = "idle"; label = "Hold to talk"; }
+    else if (opens.length) { status = "Connecting audio…"; mode = "wait"; label = "Connecting…"; }
+    else { status = "Waiting for others on channel \u201C" + state.ch + "\u201D"; mode = "wait"; label = "Waiting…"; }
+
+    els.status.textContent = status;
+    els.radio.dataset.mode = mode;
+    els.pttLabel.textContent = label;
+    els.ptt.disabled = !(mode === "idle" || mode === "tx");
+    els.ptt.setAttribute("aria-label", label);
+    els.chLabel.textContent = "Channel " + state.ch + " \u00B7 " + (opens.length + 1) + " here";
+
+    els.roster.textContent = "";
+    opens.forEach(function (L) {
+      var s = document.createElement("span");
+      s.className = "who" + (L.talking ? " talking" : "");
+      s.textContent = nameOf(L) + (L.hasStream ? "" : " (connecting)");
+      els.roster.appendChild(s);
+    });
+  }
+
+  function setRadioNote(msg) { els.radioNote.textContent = msg || ""; }
+
+  /* ---------- messages ---------- */
+  function sendTo(L, o) {
+    try { if (L.dc && L.dcOpen) L.dc.send(o); } catch (e) {}
+  }
+  function broadcast(o) {
+    linkList().forEach(function (L) { sendTo(L, o); });
+  }
+  function onMsg(L, d) {
+    if (!d || typeof d !== "object") return;
+    if (d.t === "hi" && typeof d.name === "string") { L.name = d.name.slice(0, 24); L.log = d.log === true; render(); }
+    else if (d.t === "talk") { setRemoteTalking(L, d.on === true); }
+    else if (d.t === "log") { L.log = d.on === true; }
+    else if (d.t === "say") { onSay(d, nameOf(L)); }
+  }
+
+  /* ---------- talking ---------- */
+  function startTalk() {
+    if (iTalk || !state.joined || !micTrack || upCount() === 0) return;
+    if (talkerCount() > 0) { beep([260], 0.14); return; }
+    iTalk = true;
+    micTrack.enabled = true;
+    startRec();
+    broadcast({ t: "talk", on: true });
+    render();
+  }
+  function stopTalk() {
+    if (!iTalk) return;
+    iTalk = false;
+    if (micTrack) micTrack.enabled = false;
+    stopRec();
+    broadcast({ t: "talk", on: false });
+    render();
+  }
+  function setRemoteTalking(L, on) {
+    if (L.talking === on) return;
+    var before = talkerCount();
+    L.talking = on;
+    if (on && logOn && !L.log) flashLogState(nameOf(L) + "\u2019s text sharing is off.");
+    // If two people press at the same moment, the lower slot keeps the channel.
+    if (on && iTalk && mySlot > L.slot) stopTalk();
+    var after = talkerCount();
+    if (!iTalk) {
+      if (before === 0 && after > 0) { beep([880, 1320], 0.06); playAll(); }
+      else if (before > 0 && after === 0) { beep([1320, 880], 0.05); }
+    }
+    render();
+  }
+
+  els.ptt.addEventListener("pointerdown", function (e) {
+    e.preventDefault();
+    if (els.ptt.disabled) return;
+    try { els.ptt.setPointerCapture(e.pointerId); } catch (err) {}
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    playAll();
+    startTalk();
+  });
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach(function (t) {
+    els.ptt.addEventListener(t, stopTalk);
+  });
+  els.ptt.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  els.ptt.addEventListener("selectstart", function (e) { e.preventDefault(); });
+  window.addEventListener("keydown", function (e) {
+    if (e.code !== "Space" || e.repeat || !state.joined) return;
+    var tag = document.activeElement && document.activeElement.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
+    e.preventDefault(); startTalk();
+  });
+  window.addEventListener("keyup", function (e) { if (e.code === "Space") stopTalk(); });
+  els.soundBtn.addEventListener("click", function () {
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    playAll();
+  });
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { stopTalk(); return; }
+    if (!state.joined) return;
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    requestWake();
+    playAll();
+  });
+
+  function allCalls() { return linkList().map(function (L) { return L.call; }).filter(Boolean); }
+
+  /* ---------- voice effects (what the other person hears) ---------- */
+  // Playback-speed ratios: below 1 is lower, above 1 is higher.
+  var PITCH = { low: 0.65, high: 1.5, super: 2.2 };
+  var fx = null, fxMode = "off";
+  var fxButtons = Array.prototype.slice.call(document.querySelectorAll(".fxbtn"));
+
+  // Builds a live pitch shifter: your mic goes through two crossfading delay
+  // lines whose delay time slides up or down, which speeds up or slows the sound.
+  function buildFx() {
+    try {
+      var ctx = audioCtx;
+      if (!ctx || !localStream || !ctx.createMediaStreamSource || !ctx.createMediaStreamDestination) return null;
+      var CYCLE = 0.1, FADE = 0.05;
+      var sr = ctx.sampleRate, len = Math.round(CYCLE * sr), fadeLen = Math.round(FADE * sr);
+      var down = ctx.createBuffer(1, len, sr), up = ctx.createBuffer(1, len, sr), fade = ctx.createBuffer(1, len, sr);
+      var dd = down.getChannelData(0), uu = up.getChannelData(0), ff = fade.getChannelData(0);
+      for (var i = 0; i < len; i++) {
+        dd[i] = i / len;
+        uu[i] = 1 - i / len;
+        ff[i] = i < fadeLen ? Math.sqrt(i / fadeLen) : Math.sqrt(Math.max(0, 1 - (i - fadeLen) / (len - fadeLen)));
+      }
+      var loopSrc = function (buf) { var s = ctx.createBufferSource(); s.buffer = buf; s.loop = true; return s; };
+      var m1 = loopSrc(down), m2 = loopSrc(down), m3 = loopSrc(up), m4 = loopSrc(up);
+      var f1 = loopSrc(fade), f2 = loopSrc(fade);
+      var g1 = ctx.createGain(), g2 = ctx.createGain(), g3 = ctx.createGain(), g4 = ctx.createGain();
+      var amp1 = ctx.createGain(), amp2 = ctx.createGain();
+      var d1 = ctx.createDelay(1), d2 = ctx.createDelay(1);
+      var mix1 = ctx.createGain(), mix2 = ctx.createGain();
+      var input = ctx.createGain(), wet = ctx.createGain();
+      var src = ctx.createMediaStreamSource(localStream);
+      var dest = ctx.createMediaStreamDestination();
+
+      g1.gain.value = 1; g2.gain.value = 1; g3.gain.value = 0; g4.gain.value = 0;
+      amp1.gain.value = 0; amp2.gain.value = 0;
+      mix1.gain.value = 0; mix2.gain.value = 0;
+
+      m1.connect(g1); m2.connect(g2); m3.connect(g3); m4.connect(g4);
+      g1.connect(amp1); g3.connect(amp1); g2.connect(amp2); g4.connect(amp2);
+      amp1.connect(d1.delayTime); amp2.connect(d2.delayTime);
+      f1.connect(mix1.gain); f2.connect(mix2.gain);
+      src.connect(input);
+      input.connect(d1); input.connect(d2);
+      d1.connect(mix1); d2.connect(mix2);
+      mix1.connect(wet); mix2.connect(wet);
+      wet.connect(dest);
+
+      var t0 = ctx.currentTime + 0.05;
+      m1.start(t0); m3.start(t0); f1.start(t0);
+      m2.start(t0 + FADE); m4.start(t0 + FADE); f2.start(t0 + FADE);
+
+      var setRatio = function (r) {
+        var upShift = r > 1;
+        var amp = Math.abs(r - 1) * CYCLE;
+        var now = ctx.currentTime;
+        g1.gain.setValueAtTime(upShift ? 0 : 1, now);
+        g2.gain.setValueAtTime(upShift ? 0 : 1, now);
+        g3.gain.setValueAtTime(upShift ? 1 : 0, now);
+        g4.gain.setValueAtTime(upShift ? 1 : 0, now);
+        amp1.gain.setTargetAtTime(amp, now, 0.01);
+        amp2.gain.setTargetAtTime(amp, now, 0.01);
+      };
+      var close = function () {
+        [m1, m2, m3, m4, f1, f2].forEach(function (s) { try { s.stop(); } catch (e) {} });
+        try { src.disconnect(); } catch (e) {}
+        try { wet.disconnect(); } catch (e) {}
+      };
+      return { dest: dest, track: dest.stream.getAudioTracks()[0], setRatio: setRatio, close: close };
+    } catch (e) {
+      console.error("Voice effects unavailable:", e);
+      return null;
+    }
+  }
+
+  // With no effect on, the normal microphone is sent exactly as before.
+  function outStream() { return (fx && fxMode !== "off") ? fx.dest.stream : localStream; }
+  function outTrack() { return (fx && fxMode !== "off") ? fx.track : micTrack; }
+
+  function swapTracks() {
+    var tr = outTrack();
+    if (!tr) return;
+    allCalls().forEach(function (k) {
+      try {
+        var pc = k.peerConnection;
+        if (!pc || !pc.getSenders) return;
+        pc.getSenders().forEach(function (s) {
+          if (s.track && s.track.kind === "audio" && s.track !== tr) {
+            var r = s.replaceTrack(tr);
+            if (r && r.catch) r.catch(function () {});
+          }
+        });
+      } catch (e) {}
+    });
+  }
+
+  function syncFxButtons() {
+    fxButtons.forEach(function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-fx") === fxMode ? "true" : "false");
+    });
+  }
+
+  function setFx(mode) {
+    if (mode !== "off") {
+      if (!fx) fx = buildFx();
+      if (!fx) {
+        fxMode = "off";
+        syncFxButtons();
+        setRadioNote("Voice effects aren\u2019t supported in this browser.");
+        return;
+      }
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+      fx.setRatio(PITCH[mode]);
+    }
+    fxMode = mode;
+    swapTracks();
+    syncFxButtons();
+  }
+
+  fxButtons.forEach(function (b) {
+    b.addEventListener("click", function () {
+      var m = b.getAttribute("data-fx");
+      setFx(fxMode === m ? "off" : m);
+    });
+  });
+
+  /* ---------- conversation log (speech to text) ---------- */
+  // Each phone turns its owner's speech into text while they hold the talk
+  // button, then shares that text with the channel. Nothing is transcribed
+  // unless that person has turned LOG on.
+  var logEls = { btn: $("logBtn"), panel: $("log"), body: $("logBody"), state: $("logState"), copy: $("logCopy") };
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var logOn = false, partnerLog = false;
+  var logEntries = [], lastDay = "", logStateT = null;
+  var rec = null, recRunning = false, recWanted = false, recDiscard = false, recErrored = false, srBlocked = false;
+  var recText = "", recInterim = "", recStartedAt = 0, recRestarts = 0, recStopTimer = null, lastFlushAt = 0;
+
+  function dayKey(ts) { var d = new Date(ts); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); }
+  function dayLabel(ts) { var d = new Date(ts); return "-" + (d.getMonth() + 1) + "/" + d.getDate() + "-"; }
+  function fmtTime(ts) {
+    var d = new Date(ts), h = d.getHours(), m = d.getMinutes();
+    var ap = h >= 12 ? "pm" : "am";
+    h = h % 12 || 12;
+    return h + ":" + (m < 10 ? "0" : "") + m + ap;
+  }
+
+  function idleState() {
+    if (!logOn) return "";
+    if (!SR) return "Speech-to-text isn\u2019t supported here. You\u2019ll still see others\u2019 text.";
+    return "Log on. Your words are turned into text and shared with this channel.";
+  }
+  function setLogState(msg) { logEls.state.textContent = msg || ""; }
+  function flashLogState(msg) {
+    setLogState(msg);
+    clearTimeout(logStateT);
+    logStateT = setTimeout(function () { if (logEls.state.textContent === msg) setLogState(idleState()); }, 4500);
+  }
+
+  function ensureDay(ts) {
+    var k = dayKey(ts);
+    if (k === lastDay) return;
+    lastDay = k;
+    var el = document.createElement("div");
+    el.className = "day";
+    el.textContent = dayLabel(ts);
+    logEls.body.appendChild(el);
+  }
+
+  function addLine(name, text, ts) {
+    ensureDay(ts);
+    logEntries.push({ name: name, text: text, ts: ts });
+    var row = document.createElement("div");
+    row.className = "row";
+    var msg = document.createElement("span");
+    msg.className = "msg";
+    var b = document.createElement("b");
+    b.textContent = name + ":";
+    msg.appendChild(b);
+    msg.appendChild(document.createTextNode(" " + text));
+    var tm = document.createElement("span");
+    tm.className = "time";
+    tm.textContent = fmtTime(ts);
+    row.appendChild(msg);
+    row.appendChild(tm);
+    var body = logEls.body;
+    var stick = body.scrollHeight - body.scrollTop - body.clientHeight < 24;
+    body.appendChild(row);
+    if (stick) body.scrollTop = body.scrollHeight;
+  }
+
+  function resetLog() {
+    logEntries = []; lastDay = ""; partnerLog = false;
+    logEls.body.textContent = "";
+    ensureDay(Date.now());
+  }
+
+  function logAsText() {
+    var out = [], day = "";
+    logEntries.forEach(function (e) {
+      var k = dayKey(e.ts);
+      if (k !== day) { day = k; out.push(dayLabel(e.ts)); }
+      out.push(e.name + ": " + e.text + "   " + fmtTime(e.ts));
+    });
+    if (!out.length) out.push(dayLabel(Date.now()));
+    return out.join("\n");
+  }
+
+  function onSay(d, fallback) {
+    if (typeof d.text !== "string") return;
+    var text = d.text.replace(/\s+/g, " ").trim().slice(0, 500);
+    if (!text) return;
+    var name = (typeof d.name === "string" && d.name.trim()) ? d.name.trim().slice(0, 24) : fallback;
+    var ts = typeof d.ts === "number" ? d.ts : Date.now();
+    if (Math.abs(ts - Date.now()) > 10 * 60 * 1000) ts = Date.now();
+    addLine(name, text, ts);
+  }
+
+  function setLog(on) {
+    logOn = !!on;
+    logEls.btn.setAttribute("aria-pressed", logOn ? "true" : "false");
+    logEls.panel.hidden = !logOn;
+    if (logOn) {
+      srBlocked = false; recErrored = false;
+      setLogState(idleState());
+      logEls.body.scrollTop = logEls.body.scrollHeight;
+    } else {
+      stopRec(true);
+      setLogState("");
+    }
+    broadcast({ t: "log", on: logOn });
+  }
+  function logOff() {
+    logOn = false;
+    logEls.btn.setAttribute("aria-pressed", "false");
+    logEls.panel.hidden = true;
+    stopRec(true);
+    setLogState("");
+  }
+
+  function flushRec() {
+    var text = (recText + " " + recInterim).replace(/\s+/g, " ").trim();
+    recText = ""; recInterim = "";
+    if (!text) {
+      if (recErrored) { recErrored = false; return; }
+      if (Date.now() - lastFlushAt < 1500) return;      // a late duplicate 'end'
+      flashLogState("No words caught that time.");
+      return;
+    }
+    text = text.charAt(0).toUpperCase() + text.slice(1);
+    var ts = Date.now();
+    lastFlushAt = ts;
+    addLine(state.name, text, ts);
+    broadcast({ t: "say", name: state.name, text: text, ts: ts });
+    setLogState(idleState());
+  }
+
+  function finishRec() {
+    clearTimeout(recStopTimer);
+    if (recDiscard) { recDiscard = false; recText = ""; recInterim = ""; setLogState(idleState()); return; }
+    flushRec();
+  }
+
+  function newRec() {
+    var r = new SR();
+    r.continuous = true;
+    r.interimResults = true;
+    r.maxAlternatives = 1;
+    r.lang = navigator.language || "en-US";
+    r.onstart = function () { recRunning = true; setLogState("Listening…"); };
+    r.onresult = function (ev) {
+      var interim = "";
+      for (var i = ev.resultIndex; i < ev.results.length; i++) {
+        var res = ev.results[i];
+        if (res.isFinal) recText += (recText ? " " : "") + String(res[0].transcript).trim();
+        else interim += res[0].transcript;
+      }
+      recInterim = interim.trim();
+      var heard = (recText + " " + recInterim).trim();
+      setLogState("Listening… " + heard.slice(-60));
+    };
+    r.onerror = function (ev) {
+      var e = ev && ev.error;
+      if (e === "no-speech" || e === "aborted") return;
+      recErrored = true;
+      if (e === "not-allowed" || e === "service-not-allowed") {
+        srBlocked = true; recWanted = false;
+        setLogState("Speech-to-text is blocked. On iPhone it may need Dictation turned on (Settings, General, Keyboard).");
+      } else if (e === "audio-capture") {
+        setLogState("Couldn\u2019t share the microphone with speech-to-text. If the call audio drops, turn LOG off.");
+      } else if (e === "network") {
+        setLogState("Speech-to-text needs an internet connection.");
+      } else {
+        setLogState("Speech-to-text problem: " + e);
+      }
+    };
+    r.onend = function () {
+      recRunning = false;
+      if (recWanted && iTalk && recRestarts < 6) {
+        // iOS ended the session by itself while the button is still held: keep listening.
+        recRestarts++;
+        setTimeout(function () { if (recWanted && iTalk && !recRunning) startRecNow(); }, 150);
+        return;
+      }
+      finishRec();
+    };
+    return r;
+  }
+
+  function startRecNow() {
+    try {
+      if (!rec) rec = newRec();
+      recStartedAt = Date.now();
+      rec.start();
+    } catch (e) {
+      console.error("Speech start failed:", e);
+    }
+  }
+
+  function startRec() {
+    if (!logOn || !SR || srBlocked) return;
+    recWanted = true; recDiscard = false; recRestarts = 0; recErrored = false;
+    if (recRunning) return;                // the previous session is still wrapping up
+    recText = ""; recInterim = "";
+    startRecNow();
+  }
+
+  function stopRec(discard) {
+    recDiscard = !!discard;
+    recWanted = false;
+    if (!rec || !recRunning) {
+      if (discard) { recText = ""; recInterim = ""; recDiscard = false; }
+      else if (recText || recInterim) flushRec();
+      return;
+    }
+    try { if (discard) rec.abort(); else rec.stop(); } catch (e) {}
+    clearTimeout(recStopTimer);
+    recStopTimer = setTimeout(function () {
+      if (!recRunning) return;
+      try { rec.abort(); } catch (e) {}
+      recRunning = false;
+      finishRec();
+    }, 2500);
+  }
+
+  logEls.btn.addEventListener("click", function () { setLog(!logOn); });
+  logEls.copy.addEventListener("click", function () {
+    var txt = logAsText();
+    var p = null;
+    try { p = navigator.clipboard.writeText(txt); } catch (e) {}
+    if (p && p.then) p.then(function () { flashLogState("Copied."); }).catch(function () { flashLogState("Couldn\u2019t copy."); });
+    else flashLogState("Couldn\u2019t copy.");
+  });
+  resetLog();
+
+  /* ---------- wake lock ---------- */
+  function requestWake() {
+    try {
+      if (navigator.wakeLock && state.joined) {
+        navigator.wakeLock.request("screen").then(function (w) { wake = w; }).catch(function () {});
+      }
+    } catch (e) {}
+  }
+  function releaseWake() {
+    try { if (wake) wake.release(); } catch (e) {}
+    wake = null;
+  }
+
+  /* ---------- links to the other people ---------- */
+  function closeLink(slot) {
+    var L = links[slot];
+    if (!L) return;
+    var d = L.dc, k = L.call, a = L.audio;
+    L.dc = null; L.call = null; L.audio = null; L.dcOpen = false; L.hasStream = false; L.talking = false;
+    delete links[slot];
+    try { if (d) d.close(); } catch (e) {}
+    try { if (k) k.close(); } catch (e) {}
+    try { if (a) { a.srcObject = null; a.remove(); } } catch (e) {}
+  }
+
+  function linkLost(slot) {
+    if (!links[slot]) return;
+    closeLink(slot);
+    if (iTalk && upCount() === 0) stopTalk();
+    render();
+  }
+
+  function adoptData(L, c) {
+    if (L.dc && L.dc !== c) { try { L.dc.close(); } catch (e) {} }
+    L.dc = c; L.dcOpen = false;
+    var onOpen = function () {
+      if (L.dc !== c) return;
+      L.dcOpen = true;
+      L.lastSeen = Date.now();
+      blockedCount[L.slot] = 0;
+      clearTimeout(waitHintT);
+      if (hintShown) { hintShown = false; setRadioNote(""); }
+      sendTo(L, { t: "hi", name: state.name, log: logOn });
+      if (iTalk) sendTo(L, { t: "talk", on: true });
+      render();
+    };
+    c.on("open", onOpen);
+    if (c.open) onOpen();
+    c.on("data", function (d) { if (L.dc !== c) return; L.lastSeen = Date.now(); onMsg(L, d); });
+    c.on("close", function () { if (L.dc === c) linkLost(L.slot); });
+    c.on("error", function () { if (L.dc === c) linkLost(L.slot); });
+  }
+
+  function adoptCall(L, k) {
+    if (L.call && L.call !== k) { try { L.call.close(); } catch (e) {} }
+    L.call = k; L.hasStream = false;
+    k.on("stream", function (s) {
+      if (L.call !== k) return;
+      L.hasStream = true;
+      if (!L.audio) {
+        var a = document.createElement("audio");
+        a.autoplay = true;
+        a.setAttribute("playsinline", "");
+        els.audios.appendChild(a);
+        L.audio = a;
+      }
+      L.audio.srcObject = s;
+      playAudio(L.audio);
+      render();
+    });
+    k.on("close", function () { if (L.call === k) linkLost(L.slot); });
+    k.on("error", function () { if (L.call === k) linkLost(L.slot); });
+  }
+
+  // Each person dials everyone in a lower slot and keeps retrying.
+  // People in higher slots dial in to us.
+  function dialSlot(j) {
+    if (links[j]) closeLink(j);
+    var L = getLink(j);
+    L.dialed = true;
+    L.dialStartedAt = Date.now();
+    var other = idFor(j);
+    try {
+      adoptData(L, peer.connect(other, { reliable: true }));
+      var k = peer.call(other, outStream());
+      if (k) adoptCall(L, k);
+    } catch (e) { console.error(e); }
+  }
+
+  function dialTick() {
+    if (!state.joined || !mySlot || !peer || peer.destroyed || peer.disconnected || !localStream) return;
+    for (var j = 1; j < mySlot; j++) {
+      var L = links[j];
+      if (L && !L.dialed) continue;                       // they dialed us
+      if (L && isUp(L)) continue;
+      if (L && Date.now() - L.dialStartedAt <= 9000) continue; // still trying
+      if (L && !L.dcOpen && (unavailAt[j] || 0) < L.dialStartedAt) {
+        blockedCount[j] = (blockedCount[j] || 0) + 1;
+      }
+      dialSlot(j);
+    }
+    var anyBlocked = Object.keys(blockedCount).some(function (k) { return blockedCount[k] >= 2; });
+    if (anyBlocked) {
+      blockedShown = true;
+      setRadioNote("Someone looks to be online, but this network can\u2019t connect directly to theirs." + relayAdvice());
+    } else if (blockedShown) {
+      blockedShown = false;
+      setRadioNote("");
+    }
+  }
+
+  function startDialing() {
+    clearInterval(dialT);
+    dialTick();
+    dialT = setInterval(dialTick, 4000);
+  }
+
+  function startWatchdog() {
+    clearInterval(watchT);
+    watchT = setInterval(function () {
+      linkList().forEach(function (L) {
+        if (!L.dcOpen) return;
+        sendTo(L, { t: "p" });
+        if (Date.now() - L.lastSeen > 10000) linkLost(L.slot);
+      });
+    }, 3000);
+  }
+
+  /* ---------- connection service (PeerJS) ---------- */
+  function fatal(msg) {
+    fatalMsg = msg;
+    setRadioNote(msg);
+    render();
+  }
+
+  function scheduleReconnect(p) {
+    setTimeout(function () {
+      if (peer === p && state.joined && !p.destroyed && p.disconnected) {
+        try { p.reconnect(); } catch (e) {}
+      }
+    }, 2500);
+  }
+
+  function claimSlot(n) {
+    if (!state.joined) return;
+    var p;
+    try {
+      p = new Peer(idFor(n), { debug: 1, config: { iceServers: ICE_SERVERS } });
+    } catch (e) {
+      fatal("This browser can\u2019t make live audio connections.");
+      return;
+    }
+    peer = p;
+    var opened = false;
+
+    p.on("open", function () {
+      if (peer !== p) return;
+      opened = true; mySlot = n; claimTries = 0; svcDown = false;
+      if (!blockedShown && !hintShown) setRadioNote("");
+      startWatchdog();
+      startDialing();
+      clearTimeout(waitHintT);
+      waitHintT = setTimeout(function () {
+        var anyOpen = linkList().some(function (L) { return L.dcOpen; });
+        if (state.joined && !anyOpen && !fatalMsg && !blockedShown) {
+          hintShown = true;
+          setRadioNote("Still waiting. If others have already joined, your networks may not be able to connect directly." + relayAdvice());
+        }
+      }, 20000);
+      render();
+    });
+
+    p.on("error", function (err) {
+      if (peer !== p) return;
+      var t = err && err.type;
+      if (t === "unavailable-id" && !opened) {
+        try { p.destroy(); } catch (e) {}
+        if (n < MAX) { claimSlot(n + 1); return; }
+        claimTries++;
+        if (claimTries >= 6) { fatal("This channel is full (" + MAX + " people max). Pick a different code."); return; }
+        setRadioNote("The channel looks full. Trying again…");
+        setTimeout(function () { if (state.joined && peer === p) claimSlot(1); }, 3000);
+        return;
+      }
+      if (t === "peer-unavailable") {
+        // That person isn't online. Keep waiting; we dial again shortly.
+        var js = slotFromMessage(err && err.message);
+        if (js) {
+          unavailAt[js] = Date.now();
+          blockedCount[js] = 0;
+          if (links[js] && !links[js].dcOpen) closeLink(js);
+        }
+        return;
+      }
+      if (t === "network" || t === "server-error" || t === "socket-error" || t === "socket-closed" || t === "disconnected") {
+        svcDown = true;
+        setRadioNote("Can\u2019t reach the connection service. Check your internet. Retrying…");
+        render();
+        scheduleReconnect(p);
+        return;
+      }
+      if (t === "browser-incompatible") { fatal("This browser can\u2019t make live audio connections."); return; }
+      console.error(err);
+    });
+
+    p.on("disconnected", function () {
+      if (peer !== p) return;
+      svcDown = true;
+      render();
+      scheduleReconnect(p);
+    });
+
+    p.on("connection", function (c) {
+      if (peer !== p) return;
+      var s = slotFromPeerId(c.peer);
+      if (!s) { try { c.close(); } catch (e) {} return; }
+      adoptData(getLink(s), c);
+    });
+    p.on("call", function (k) {
+      if (peer !== p) return;
+      var s = slotFromPeerId(k.peer);
+      if (!s) { try { k.close(); } catch (e) {} return; }
+      k.answer(outStream());
+      adoptCall(getLink(s), k);
+    });
+  }
+
+  /* ---------- join / leave ---------- */
+  function micErrorText(err) {
+    var n = err && err.name;
+    if (n === "NotAllowedError" || n === "SecurityError") {
+      return "The microphone is blocked. Allow it when Safari asks, or tap aA in the address bar, then Website Settings, then Microphone. Then tap Join again.";
+    }
+    if (n === "NotFoundError") return "No microphone was found on this device.";
+    if (err && err.message === "nomic") return "This browser can\u2019t access a microphone from this page. Open it over https in Safari.";
+    return "Couldn\u2019t start the microphone. Check your browser settings and try again.";
+  }
+
+  async function join() {
+    if (joining || state.joined) return;
+    joining = true;
+    els.joinBtn.disabled = true;
+    els.joinNote.textContent = "";
+
+    var name = (els.name.value.trim() || "Me").slice(0, 24);
+    var ch = cleanCode(els.channel.value);
+    if (ch.length < 4) {
+      els.joinNote.textContent = "Enter a channel code of at least 4 letters or numbers. Everyone uses the same one.";
+      els.joinBtn.disabled = false; joining = false; return;
+    }
+    if (!window.Peer) {
+      els.joinNote.textContent = "Couldn\u2019t load the connection library. Check your internet and reload the page.";
+      els.joinBtn.disabled = false; joining = false; return;
+    }
+
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) { audioCtx = audioCtx || new AC(); if (audioCtx.resume) audioCtx.resume(); }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("nomic");
+      localStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      });
+      micTrack = localStream.getAudioTracks()[0];
+      micTrack.enabled = false;
+
+      fxMode = "off"; syncFxButtons();
+      resetLog();
+      safeSet("wt-name", els.name.value.trim());
+      safeSet("wt-channel", ch);
+      state = { joined: true, ch: ch, name: name };
+      mySlot = 0; claimTries = 0; svcDown = false; fatalMsg = "";
+      links = {}; unavailAt = {}; blockedCount = {};
+      hintShown = false; blockedShown = false; iTalk = false;
+      els.join.hidden = true;
+      els.radio.hidden = false;
+      setRadioNote("");
+      render();
+      claimSlot(1);
+      requestWake();
+    } catch (err) {
+      console.error(err);
+      if (localStream) localStream.getTracks().forEach(function (t) { t.stop(); });
+      localStream = null; micTrack = null;
+      els.joinNote.textContent = micErrorText(err);
+    }
+    els.joinBtn.disabled = false;
+    joining = false;
+  }
+
+  function leave() {
+    stopTalk();
+    clearInterval(dialT); clearInterval(watchT); clearTimeout(waitHintT);
+    Object.keys(links).forEach(function (k) { closeLink(k); });
+    var p = peer; peer = null;
+    try { if (p) p.destroy(); } catch (e) {}
+    if (localStream) localStream.getTracks().forEach(function (t) { t.stop(); });
+    if (fx) { try { fx.close(); } catch (e) {} }
+    fx = null; fxMode = "off"; syncFxButtons();
+    logOff();
+    resetLog();
+    localStream = null; micTrack = null;
+    releaseWake();
+    state = { joined: false, ch: "", name: "" };
+    mySlot = 0; fatalMsg = ""; hintShown = false; blockedShown = false;
+    els.radio.hidden = true;
+    els.join.hidden = false;
+    els.joinNote.textContent = "";
+  }
+
+  async function invite() {
+    var ch = cleanCode(els.channel.value);
+    if (ch.length < 4) { els.joinNote.textContent = "Enter a channel code of at least 4 letters or numbers first."; return; }
+    var url = location.href.split("#")[0] + "#" + ch;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Group Walkie Talkie", text: "Join my walkie-talkie channel", url: url });
+        return;
+      }
+    } catch (e) { if (e && e.name === "AbortError") return; }
+    try {
+      await navigator.clipboard.writeText(url);
+      els.joinNote.style.color = "var(--rx)";
+      els.joinNote.textContent = "Invite link copied.";
+      setTimeout(function () { els.joinNote.textContent = ""; els.joinNote.style.color = ""; }, 2500);
+    } catch (e) {
+      els.joinNote.textContent = "Copy this link: " + url;
+    }
+  }
+
+  els.joinBtn.addEventListener("click", join);
+  els.leaveBtn.addEventListener("click", leave);
+  els.inviteBtn.addEventListener("click", invite);
+  els.channel.addEventListener("keydown", function (e) { if (e.key === "Enter") join(); });
+  window.addEventListener("pagehide", function () {
+    try { if (peer) peer.destroy(); } catch (e) {}
+    if (localStream) localStream.getTracks().forEach(function (t) { t.stop(); });
+  });
+})();
+</script>
+</body>
+</html>
